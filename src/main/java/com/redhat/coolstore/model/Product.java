@@ -3,7 +3,7 @@ package com.redhat.coolstore.model;
 public class Product {
     public String itemId;
     public String name;
-    public String decription;
+    public String description;
     public double price;
     
     public Product() {}
@@ -11,7 +11,7 @@ public class Product {
     public Product(String itemId, String name, String description, double price) {
         this.itemId = itemId;
         this.name = name;
-        this.decription = description;
+        this.description = description;
         this.price = price;
     }
 }
