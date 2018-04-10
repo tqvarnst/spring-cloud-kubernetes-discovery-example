@@ -1,6 +1,7 @@
 package com.redhat.coolstore.client;
 
 import static io.specto.hoverfly.junit.core.SimulationSource.dsl;
+import static io.specto.hoverfly.junit.dsl.HoverflyDsl.response;
 import static io.specto.hoverfly.junit.dsl.HoverflyDsl.service;
 import static io.specto.hoverfly.junit.dsl.HttpBodyConverter.json;
 import static io.specto.hoverfly.junit.dsl.ResponseCreators.success;
@@ -35,8 +36,11 @@ public class InventoryClientTest {
     @ClassRule
     public static HoverflyRule hoverflyRule = HoverflyRule.inSimulationMode(dsl(
             service("mock.service.url:9999")
-                    .get(startsWith("/services/inventory"))
-                    .willReturn(success(json(mockInventory)))));
+                    .get(startsWith("/services/inventory/1234"))
+                        .willReturn(success(json(mockInventory)))
+                    .get(startsWith("/services/inventory/9999"))
+                        .willReturn(response().status(503))
+            ));
 
     @Test
     public void testInventoryClient() {
@@ -45,4 +49,12 @@ public class InventoryClientTest {
                 .returns(98,i -> i.quantity)
                 .returns("1234",i -> i.itemId);
     }
+    
+   /* @Test
+    public void test_fallback() {
+        Inventory inventory = inventoryClient.getInventoryStatus("9999");
+        assertThat(inventory)
+                .returns(-1,i -> i.quantity)
+                .returns("9999",i -> i.itemId);
+    } */
 }
