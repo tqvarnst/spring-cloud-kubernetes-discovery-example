@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.redhat.coolstore.client.InventoryClient;
+import com.redhat.coolstore.model.Inventory;
 import com.redhat.coolstore.model.Product;
 
 @Controller
@@ -20,15 +22,27 @@ public class ProductEndpoint {
     @Autowired
     private ProductRepository productRepository;
     
+    @Autowired
+    private InventoryClient inventoryClient;
+    
     @ResponseBody
     @GetMapping("/products")
     public ResponseEntity<List<Product>> readAll() {
-        return new ResponseEntity<List<Product>>(productRepository.readAll(),HttpStatus.OK);
+        List<Product> productList = productRepository.readAll();
+        productList.stream()
+                .forEach(p -> {
+                    p.quantity = inventoryClient.getInventoryStatus(p.itemId).quantity;
+                });
+        
+        return new ResponseEntity<List<Product>>(productList,HttpStatus.OK);
     }
     
     @ResponseBody
     @GetMapping("/product/{id}")
     public ResponseEntity<Product> readOne(@PathVariable("id") String id) {
-        return new ResponseEntity<Product>(productRepository.findById(id),HttpStatus.OK);
+        Product product = productRepository.findById(id);
+        Inventory inventory = inventoryClient.getInventoryStatus(id);
+        product.quantity = inventory.quantity;
+        return new ResponseEntity<Product>(product,HttpStatus.OK);
     }
 }
